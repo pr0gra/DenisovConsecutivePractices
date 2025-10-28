@@ -3,7 +3,6 @@ package com.oolexander.rickandmorty.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -17,8 +16,8 @@ import androidx.navigation3.ui.NavDisplay
 import com.oolexander.rickandmorty.navigation.components.BottomNavItem
 import com.oolexander.rickandmorty.navigation.components.BottomNavigationBar
 import com.oolexander.rickandmorty.navigation.components.TopBar
-import com.oolexander.rickandmorty.ui.screen.details.CharacterDetailScreen
-import com.oolexander.rickandmorty.ui.screen.list.CharacterListScreen
+import com.oolexander.rickandmorty.presentation.screen.details.CharacterDetailScreen
+import com.oolexander.rickandmorty.presentation.screen.list.CharacterListScreen
 
 @Composable
 fun NavGraph() {
@@ -72,9 +71,7 @@ fun NavGraph() {
                     is CharacterDetail -> NavEntry(key) {
                         CharacterDetailScreen(
                             characterId = key.id,
-                            onBackClick = {
-                                backStack.removeLastOrNull()
-                            },
+                            onBackClick = { backStack.removeLastOrNull() },
                             modifier = Modifier
                         )
                     }
