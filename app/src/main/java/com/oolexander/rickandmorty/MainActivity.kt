@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.oolexander.rickandmorty.navigation.NavGraph
-import com.oolexander.rickandmorty.ui.theme.RickAndMortyTheme
+import com.oolexander.rickandmorty.presentation.theme.RickAndMortyTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
