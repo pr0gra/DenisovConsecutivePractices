@@ -2,86 +2,148 @@ package com.oolexander.rickandmorty.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavEntry
-import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
-import androidx.navigation3.scene.rememberSceneSetupNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.oolexander.rickandmorty.navigation.components.BottomNavItem
 import com.oolexander.rickandmorty.navigation.components.BottomNavigationBar
+import com.oolexander.rickandmorty.navigation.components.FiltersBadgeViewModel
 import com.oolexander.rickandmorty.navigation.components.TopBar
-import com.oolexander.rickandmorty.ui.screen.details.CharacterDetailScreen
-import com.oolexander.rickandmorty.ui.screen.list.CharacterListScreen
+import com.oolexander.rickandmorty.presentation.screen.details.CharacterDetailScreen
+import com.oolexander.rickandmorty.presentation.screen.favorites.FavoritesScreen
+import com.oolexander.rickandmorty.presentation.screen.filters.FiltersScreen
+import com.oolexander.rickandmorty.presentation.screen.list.CharacterListScreen
+import com.oolexander.rickandmorty.presentation.screen.profile.ProfileEditScreen
+import com.oolexander.rickandmorty.presentation.screen.profile.ProfileScreen
 
 @Composable
 fun NavGraph() {
-    val backStack = remember { mutableStateListOf<Any>(Characters) }
+    val navController = rememberNavController()
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination: NavDestination? = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route
+
+    val filtersBadgeViewModel: FiltersBadgeViewModel = hiltViewModel()
+    val hasActiveFilters by filtersBadgeViewModel.hasActiveFilters.collectAsState()
+
+    val bottomItems = listOf(
+        BottomNavItem.Characters,
+        BottomNavItem.Favorites,
+        BottomNavItem.Profile,
+    )
+
+    val showBottomBar = currentDestination?.hierarchy?.any { dest ->
+        dest.route == Routes.CHARACTERS_LIST || dest.route == Routes.FAVORITES_LIST || dest.route == Routes.PROFILE
+    } == true
+
+    val showBackButton = when (currentRoute) {
+        Routes.CHARACTERS_LIST,
+        Routes.FAVORITES_LIST -> false
+
+        else -> true
+    }
+
+    val showAction = when (currentRoute) {
+        Routes.CHARACTERS_LIST,
+        Routes.FAVORITES_LIST,
+        Routes.PROFILE -> true
+
+        else -> false
+    }
+
+    val topBarTitle = when {
+        currentRoute == Routes.CHARACTERS_LIST -> "Characters"
+        currentRoute == Routes.FAVORITES_LIST -> "Favorites"
+        currentRoute?.startsWith("details") == true -> "Character Details"
+        currentRoute == Routes.FILTERS -> "Filters"
+        currentRoute == Routes.PROFILE -> "Profile"
+        currentRoute == Routes.PROFILE_EDIT -> "Profile Edit"
+        else -> "Unknown"
+    }
 
     Scaffold(
         topBar = {
-            val currentRoute = backStack.lastOrNull()
-            val showBack = currentRoute != Characters || backStack.size > 1
             TopBar(
-                title = when (currentRoute) {
-                    Characters -> "Characters"
-                    is CharacterDetail -> "Character Details"
-                    else -> "Unknown"
-                },
-                showBackButton = showBack,
-                onBackClick = { backStack.removeLastOrNull() }
+                title = topBarTitle,
+                currentRoute = currentRoute,
+                showAction = showAction,
+                showBackButton = showBackButton,
+                hasActiveFilters = hasActiveFilters,
+                onBackClick = { navController.popBackStack() },
+                onFiltersClick = { navController.navigate(Routes.FILTERS) },
+                onEditClick = { navController.navigate(Routes.PROFILE_EDIT) },
             )
         },
         bottomBar = {
-            val currentRoute = backStack.lastOrNull()
-            if (currentRoute == Characters) {
+            if (showBottomBar) {
+                val selectedItem = bottomItems.find { item ->
+                    currentDestination.hierarchy.any { it.route == item.route }
+                } ?: BottomNavItem.Characters
+
                 BottomNavigationBar(
-                    items = listOf(BottomNavItem.Characters),
-                    selectedItem = BottomNavItem.Characters,
-                    onItemSelected = { }
+                    items = bottomItems,
+                    selectedItem = selectedItem,
+                    onItemSelected = { item ->
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
         },
-        containerColor = Color(0xFF0F1123)
+        containerColor = Color(0xFF0F1123),
     ) { innerPadding ->
-        NavDisplay(
-            entryDecorators = listOf(
-                rememberSceneSetupNavEntryDecorator(),
-                rememberSavedStateNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator()
-            ),
-            backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
-            entryProvider = { key ->
-                when (key) {
-                    Characters -> NavEntry(key) {
-                        CharacterListScreen(
-                            onCharacterClick = { characterId ->
-                                backStack.add(CharacterDetail(characterId))
-                            },
-                            modifier = Modifier.padding(innerPadding)
-                        )
-                    }
-
-                    is CharacterDetail -> NavEntry(key) {
-                        CharacterDetailScreen(
-                            characterId = key.id,
-                            onBackClick = {
-                                backStack.removeLastOrNull()
-                            },
-                            modifier = Modifier
-                        )
-                    }
-
-                    else -> NavEntry(Unit) { Text("Unknown route") }
-                }
+        NavHost(
+            navController = navController,
+            startDestination = Routes.CHARACTERS_LIST,
+            modifier = Modifier.padding(innerPadding),
+        ) {
+            composable(Routes.CHARACTERS_LIST) {
+                CharacterListScreen(
+                    onCharacterClick = { characterId ->
+                        navController.navigate("details/$characterId")
+                    },
+                )
             }
-        )
+
+            composable(Routes.FAVORITES_LIST) {
+                FavoritesScreen(
+                    onCharacterClick = { characterId ->
+                        navController.navigate("details/$characterId")
+                    },
+                )
+            }
+
+            composable(Routes.FILTERS) {
+                FiltersScreen(onDone = { navController.popBackStack() })
+            }
+
+            composable(Routes.CHARACTER_DETAILS) { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("characterId")?.toIntOrNull()
+                CharacterDetailScreen(characterId = id ?: -1)
+            }
+
+            composable(BottomNavItem.Profile.route) { ProfileScreen() }
+
+            composable(Routes.PROFILE_EDIT) {
+                ProfileEditScreen(
+                    onBackClick = { navController.popBackStack() },
+                )
+            }
+        }
     }
 }

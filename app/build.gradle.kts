@@ -5,7 +5,7 @@ plugins {
 
     alias(libs.plugins.jetbrains.kotlin.serialization)
 
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
@@ -71,8 +71,27 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.core)
 
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+
+    // OkHttp
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
+
     // hilt di
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 }

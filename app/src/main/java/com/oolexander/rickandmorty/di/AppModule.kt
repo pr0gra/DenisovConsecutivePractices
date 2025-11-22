@@ -1,10 +1,9 @@
 package com.oolexander.rickandmorty.di
 
-import com.oolexander.rickandmorty.data.CharacterRepository
-import com.oolexander.rickandmorty.data.MockData
+import com.oolexander.rickandmorty.data.models.data.CharacterRepository
+import com.oolexander.rickandmorty.data.models.data.MockData
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton

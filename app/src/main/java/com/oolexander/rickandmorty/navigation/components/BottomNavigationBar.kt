@@ -2,8 +2,6 @@ package com.oolexander.rickandmorty.navigation.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -16,15 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-data class BottomNavItem(
-    val title: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
-) {
-    companion object {
-        val Characters = BottomNavItem("Characters", Icons.Default.List)
-    }
-}
 
 @Composable
 fun BottomNavigationBar(
@@ -42,14 +31,12 @@ fun BottomNavigationBar(
 
             NavigationBarItem(
                 icon = {
-                    Box(
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = item.icon,
                             contentDescription = item.title,
                             modifier = Modifier.size(22.dp),
-                            tint = if (isSelected) Color.White else Color(0xFF8A8D9F)
+                            tint = if (isSelected) Color.White else Color(0xFF8A8D9F),
                         )
                     }
                 },
@@ -59,7 +46,7 @@ fun BottomNavigationBar(
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         ),
-                        color = if (isSelected) Color.White else Color(0xFF8A8D9F)
+                        color = if (isSelected) Color.White else Color(0xFF8A8D9F),
                     )
                 },
                 selected = isSelected,
@@ -69,8 +56,8 @@ fun BottomNavigationBar(
                     selectedTextColor = Color.Black,
                     unselectedIconColor = Color(0xFF8A8D9F),
                     unselectedTextColor = Color(0xFF8A8D9F),
-                    indicatorColor = Color(0xFF97CE4C)
-                )
+                    indicatorColor = Color(0xFF97CE4C),
+                ),
             )
         }
     }
